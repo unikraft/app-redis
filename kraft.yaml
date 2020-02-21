@@ -1,0 +1,54 @@
+specification: '0.4'
+
+unikraft:
+  version: '0.4'
+  kconfig:
+    # Enable 9pfs filesystem support
+    - CONFIG_LIBUK9P=y
+    - CONFIG_LIB9PFS=y
+    - CONFIG_LIBDEVFS=y
+    - CONFIG_LIBDEVFS_AUTOMOUNT=y
+    - CONFIG_LIBVFSCORE_AUTOMOUNT_ROOTFS=y
+    - CONFIG_LIBVFSCORE_ROOTFS_RAMFS=y
+    - CONFIG_LIBUKLIBPARAM=y
+    # Enable other options for redis
+    - CONFIG_LIBUKDEBUG=y
+    - CONFIG_LIBUKALLOC=y
+    - CONFIG_LIBUKSCHED=y
+    - CONFIG_LIBPOSIX_SYSINFO=y
+    - CONFIG_LIBPOSIX_LIBDL=y
+
+architectures:
+  x86_64: true
+
+platforms:
+  linuxu: true
+  kvm: true
+
+run:
+  arguments: vfs.rootfs=ramfs --
+
+  networks:
+    net0:
+      pre_up: kraft-net --with-dnsmasq up
+      post_down: kraft-net --with-dnsmasq down
+
+libraries:
+  pthread-embedded: '0.4'
+  newlib:
+    version: '0.4'
+    kconfig:
+      - CONFIG_LIBNEWLIBC=y
+      - CONFIG_LIBNEWLIBC_WANT_IO_C99_FORMATS=y
+      - CONFIG_LIBNEWLIBC_LINUX_ERRNO_EXTENSIONS=y
+  lwip:
+    version: '0.4'
+    kconfig:
+      - CONFIG_LWIP_IPV6=y
+  redis:
+    version: '0.4'
+    kconfig:
+      - CONFIG_LIBREDIS_SERVER=y
+      - CONFIG_LIBREDIS_COMMON=y
+      - CONFIG_LIBREDIS_LIBREDIS_LUA=y
+      - CONFIG_LIBREDIS_SERVER_MAIN_FUNCTION=y
