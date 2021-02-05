@@ -1,7 +1,7 @@
 specification: '0.4'
 
 unikraft:
-  version: '0.4'
+  version: '0.5'
   kconfig:
     # Enable 9pfs filesystem support
     - CONFIG_LIBUK9P=y
@@ -34,19 +34,19 @@ run:
       post_down: kraft-net --with-dnsmasq down
 
 libraries:
-  pthread-embedded: '0.4'
+  pthread-embedded: '0.5'
   newlib:
-    version: '0.4'
+    version: '0.5'
     kconfig:
       - CONFIG_LIBNEWLIBC=y
       - CONFIG_LIBNEWLIBC_WANT_IO_C99_FORMATS=y
       - CONFIG_LIBNEWLIBC_LINUX_ERRNO_EXTENSIONS=y
   lwip:
-    version: '0.4'
+    version: '0.5'
     kconfig:
       - CONFIG_LWIP_IPV6=y
   redis:
-    version: '0.4'
+    version: '0.5'
     kconfig:
       - CONFIG_LIBREDIS_SERVER=y
       - CONFIG_LIBREDIS_COMMON=y
