@@ -1,9 +1,8 @@
-specification: '0.4'
-
+specification: '0.5'
+name: redis
 unikraft:
   version: '0.5'
   kconfig:
-    # Enable 9pfs filesystem support
     - CONFIG_LIBUK9P=y
     - CONFIG_LIB9PFS=y
     - CONFIG_LIBDEVFS=y
@@ -11,28 +10,16 @@ unikraft:
     - CONFIG_LIBVFSCORE_AUTOMOUNT_ROOTFS=y
     - CONFIG_LIBVFSCORE_ROOTFS_RAMFS=y
     - CONFIG_LIBUKLIBPARAM=y
-    # Enable other options for redis
     - CONFIG_LIBUKDEBUG=y
     - CONFIG_LIBUKALLOC=y
     - CONFIG_LIBUKSCHED=y
     - CONFIG_LIBPOSIX_SYSINFO=y
     - CONFIG_LIBPOSIX_LIBDL=y
-
-architectures:
-  x86_64: true
-
-platforms:
-  linuxu: true
-  kvm: true
-
-run:
-  arguments: vfs.rootfs=ramfs --
-
-  networks:
-    net0:
-      pre_up: kraft-net --with-dnsmasq up
-      post_down: kraft-net --with-dnsmasq down
-
+targets:
+  - architecture: x86_64
+    platform: linuxu
+  - architecture: x86_64
+    platform: kvm
 libraries:
   pthread-embedded: '0.5'
   newlib:
