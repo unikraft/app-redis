@@ -38,7 +38,7 @@ $ ip a s virbr0
 
 Now we start the virtual machine and pass it the proper arguments to assign the IP address `172.44.0.2/24`:
 ```
-$ kraft run -b virbr0 "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 --"
+$ kraft run -b virbr0 "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- /redis.conf"
 [...]
 0: Set IPv4 address 172.44.0.2 mask 255.255.255.0 gw 172.44.0.1
 en0: Added
@@ -90,6 +90,11 @@ To configure it for the KVM platform:
 $ make menuconfig
 ```
 
+Be aware of the fact that you'll have to choose a file system: for instance, from the `vfscore` library, choose the `Default root filesystem` to be `9pfs`.
+
+If you are going to use the `qemu-guest` script or `kraft` to launch the app, you need to name the `Default root device` `fs0` (`Library Configuration` -> `vfscore` -> `Default root device`).
+This is due to how the `qemu-guest` script and `kraft` automatically tag the FS devices attached to `qemu`.
+
 Build the application:
 ```
 $ make
@@ -97,11 +102,12 @@ $ make
 
 Run the application:
 ```
-sudo qemu-system-x86_64 \
+sudo qemu-system-x86_64 -fsdev local,id=myid,path=$(pwd)/fs0,security_model=none \
+                        -device virtio-9p-pci,fsdev=myid,mount_tag=fs0,disable-modern=on,disable-legacy=off \
                         -netdev bridge,id=en0,br=virbr0 \
                         -device virtio-net-pci,netdev=en0 \
                         -kernel "build/app-redis_kvm-x86_64" \
-                        -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 --" \
+                        -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- /redis.conf" \
                         -cpu host \
                         -enable-kvm \
                         -nographic
