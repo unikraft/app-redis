@@ -1,7 +1,8 @@
+---
 specification: '0.5'
 name: redis
 unikraft:
-  version: '0.5'
+  version: 9bf6e63
   kconfig:
     - CONFIG_LIBUK9P=y
     - CONFIG_LIB9PFS=y
@@ -21,19 +22,20 @@ targets:
   - architecture: x86_64
     platform: kvm
 libraries:
-  pthread-embedded: '0.5'
+  pthread-embedded:
+    version: stable
   newlib:
-    version: '0.5'
+    version: stable
     kconfig:
       - CONFIG_LIBNEWLIBC=y
       - CONFIG_LIBNEWLIBC_WANT_IO_C99_FORMATS=y
       - CONFIG_LIBNEWLIBC_LINUX_ERRNO_EXTENSIONS=y
   lwip:
-    version: '0.5'
+    version: stable
     kconfig:
       - CONFIG_LWIP_IPV6=y
   redis:
-    version: '0.5'
+    version: stable
     kconfig:
       - CONFIG_LIBREDIS_SERVER=y
       - CONFIG_LIBREDIS_COMMON=y
