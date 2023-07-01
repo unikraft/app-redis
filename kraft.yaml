@@ -21,9 +21,9 @@ targets:
   - architecture: x86_64
     platform: linuxu
   - architecture: x86_64
-    platform: kvm
+    platform: qemu
   - architecture: arm64
-    platform: kvm
+    platform: qemu
 libraries:
   musl:
     version: stable
