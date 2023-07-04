@@ -3,6 +3,40 @@
 This application starts a Redis web server with Unikraft.
 Follow the instructions below to set up, configure, build and run Redis.
 
+### Quick Setup (aka TLDR)
+
+For a quick setup, run the commands below.
+Note that you still need to install the [requirements](#requirements).
+
+For building and running everything for `x86_64`, follow the steps below:
+
+```console
+git clone https://github.com/unikraft/app-redis redis
+cd redis/
+mkdir .unikraft
+git clone https://github.com/unikraft/unikraft .unikraft/unikraft
+git clone https://github.com/unikraft/lib-redis .unikraft/libs/redis
+git clone https://github.com/unikraft/lib-musl .unikraft/libs/musl
+git clone https://github.com/unikraft/lib-lwip .unikraft/libs/lwip
+UK_DEFCONFIG=$(pwd)/.config.redis_qemu-x86_64 make defconfig
+make -j $(nproc)
+./run-qemu-x86_64.sh
+```
+
+This will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
+
+The same can be done for `AArch64`, by running the commands below:
+
+```console
+make properclean
+UK_DEFCONFIG=$(pwd)/.config.redis_qemu-arm64 make defconfig
+make -j $(nproc)
+./run-qemu-aarch64.sh
+```
+
+Similar to the `x86_64` build, this will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
+Information about every step is detailed below.
+
 ## Requirements
 
 In order to set up, configure, build and run Redis on Unikraft, the following packages are required:
@@ -19,13 +53,14 @@ In order to set up, configure, build and run Redis on Unikraft, the following pa
 * `qemu-kvm`
 * `sgabios`
 * `gcc-aarch64-linux-gnu`
+* `redis-tools`
 
 GCC >= 8 is required to build Redis on Unikraft.
 
 On Ubuntu/Debian or other `apt`-based distributions, run the following command to install the requirements:
 
 ```console
-$ sudo apt install -y --no-install-recommends \
+sudo apt install -y --no-install-recommends \
   build-essential \
   gcc-aarch64-linux-gnu \
   libncurses-dev \
@@ -39,7 +74,8 @@ $ sudo apt install -y --no-install-recommends \
   qemu-system-x86 \
   qemu-system-arm \
   redis-tools \
-  sgabios
+  sgabios \
+  redis-tools
 ```
 
 Running Redis Unikraft with QEMU requires networking support.
@@ -47,8 +83,8 @@ For this to work properly a specific configuration must be enabled for QEMU.
 Run the commands below to enable that configuration (for the network bridge to work):
 
 ```console
-$ sudo mkdir /etc/qemu/
-$ echo "allow all" | sudo tee /etc/qemu/bridge.conf
+sudo mkdir /etc/qemu/
+echo "allow all" | sudo tee /etc/qemu/bridge.conf
 ```
 
 ## Set Up
@@ -67,63 +103,72 @@ Follow the steps below for the setup:
   1. First clone the [`app-redis` repository](https://github.com/unikraft/app-redis) in the `redis/` directory:
 
      ```console
-     $ git clone https://github.com/unikraft/app-redis redis
+     git clone https://github.com/unikraft/app-redis redis
      ```
 
      Enter the `redis/` directory:
 
      ```console
-     $ cd redis/
+     cd redis/
 
-     $ ls
-     fs0/  kraft.yaml  Makefile  Makefile.uk.default  README.md  run-aarch64*  run-x86_64*
+     ls -a
+     ```
+
+      This will print the contents of the repository.
+
+     ```text
+     fs0/  kraft.yaml  Makefile  Makefile.uk.default  README.md .config.redis_qemu-x86_64 .config.redis_qemu-arm64
      ```
 
   1. While inside the `redis/` directory, create the `.unikraft/` directory:
 
      ```console
-     $ mkdir .unikraft
+     mkdir .unikraft
      ```
 
      Enter the `.unikraft/` directory:
 
      ```console
-     $ cd .unikraft/
+     cd .unikraft/
      ```
 
   1. While inside the `.unikraft` directory, clone the [`unikraft` repository](https://github.com/unikraft/unikraft):
 
      ```console
-     $ git clone https://github.com/unikraft/unikraft unikraft
+     git clone https://github.com/unikraft/unikraft unikraft
      ```
 
   1. While inside the `.unikraft/` directory, create the `libs/` directory:
 
      ```console
-     $ mkdir libs
+     mkdir libs
      ```
 
   1. While inside the `.unikraft/` directory, clone the library repositories in the `libs/` directory:
 
      ```console
-     $ git clone https://github.com/unikraft/lib-redis libs/redis
+     git clone https://github.com/unikraft/lib-redis libs/redis
 
-     $ git clone https://github.com/unikraft/lib-musl libs/musl
+     git clone https://github.com/unikraft/lib-musl libs/musl
 
-     $ git clone https://github.com/unikraft/lib-lwip libs/lwip
+     git clone https://github.com/unikraft/lib-lwip libs/lwip
      ```
 
   1. Get back to the application directory:
 
      ```console
-     $ cd ../
+     cd ../
      ```
 
      Use the `tree` command to inspect the contents of the `.unikraft/` directory.
-     It should print something like this:
 
      ```console
-     $ tree -F -L 2 .unikraft/
+     tree -F -L 2 .unikraft/
+     ```
+
+     The layout of the `.unikraft/` directory should look something like this:
+
+     ```text
      .unikraft/
      |-- libs/
      |   |-- lwip/
@@ -161,13 +206,13 @@ Use the corresponding the configuration files (`config-...`), according to your 
 Use the `config-qemu-x86_64` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-$ UK_DEFCONFIG=$(pwd)/config-qemu-x86_64 make defconfig
+UK_DEFCONFIG=$(pwd)/config-qemu-x86_64 make defconfig
 ```
 
 This results in the creation of the `.config` file:
 
 ```console
-$ ls .config
+ls .config
 .config
 ```
 
@@ -178,7 +223,7 @@ The `.config` file will be used in the build step.
 Use the `config-qemu-aarch64` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-$ UK_DEFCONFIG=$(pwd)/config-qemu-aarch64 make defconfig
+UK_DEFCONFIG=$(pwd)/config-qemu-aarch64 make defconfig
 ```
 
 Similar to the x86_64 configuration, this results in the creation of the `.config` file that will be used in the build step.
@@ -207,7 +252,12 @@ Building for QEMU x86_64 assumes you did the QEMU x86_64 configuration step abov
 Build the Unikraft Redis image for QEMU x86_64 by using the command below:
 
 ```console
-$ make -j $(nproc)
+make -j $(nproc)
+```
+
+You will see a list of all files generated by the build system.
+
+```text
 [...]
   LD      redis_qemu-x86_64.dbg
   UKBI    redis_qemu-x86_64.dbg.bootinfo
@@ -233,7 +283,12 @@ Building for QEMU AArch64 assumes you did the QEMU AArch64 configuration step ab
 Build the Unikraft Redis image for QEMU AArch64 by using the same command as for x86_64:
 
 ```console
-$ make -j $(nproc)
+make -j $(nproc)
+```
+
+Similar to the x86_64 build, you will see a list of all files generated by the build system.
+
+```text
 [...]
   LD      redis_qemu-arm64.dbg
   UKBI    redis_qemu-arm64.dbg.bootinfo
@@ -247,14 +302,17 @@ This image is to be used in the run step.
 
 ## Run
 
-Run the resulting image with the `run-...` scripts.
-
 ### QEMU x86_64
 
-To run the QEMU x86_64 build, use `run-qemu-x86_64.sh`:
+To run the QEMU x86_64 build, use the `run-qemu-x86_64.sh` script:
 
 ```console
-$ ./run-qemu-x86_64.sh
+./run-qemu-x86_64.sh
+```
+
+You should now see the Redis server banner:
+
+```text
 SeaBIOS (version 1.13.0-1ubuntu1.1)
 
 
@@ -308,10 +366,15 @@ A Redis client (such as
 [`redis-cli`](https://github.com/unikraft/summer-of-code-2021/blob/main/content/en/docs/sessions/04-complex-applications/sol/03-set-up-and-run-redis/redis-cli))
 is required to query the server.
 
-Open another console and use the `redis-cli` command below to query the server:
+To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
 
 ```console
-$ redis-cli -h 172.44.0.2
+redis-cli -h 172.44.0.2
+```
+
+You can test it using `set/get` commands:
+
+```text
 172.44.0.2:6379> set a 1
 OK
 172.44.0.2:6379> get a
@@ -324,10 +387,15 @@ that is press the `Ctrl` and `a` keys at the same time and then, separately, pre
 
 ### QEMU AArch64
 
-To run the AArch64 build, use `run-qemu-aarch64.sh`:
+To run the AArch64 build, use the `run-qemu-aarch.sh` script:
 
 ```console
-$ ./run-qemu-aarch64.sh
+./run-qemu-aarch64.sh
+```
+
+You should now see the Redis server banner, just like when running for x86_64.
+
+```text
 1: Set IPv4 address 172.44.0.2 mask 255.255.255.0 gw 172.44.0.1
 en1: Added
 en1: Interface is up
@@ -370,5 +438,20 @@ oOo oOO| | | | |   (| | | (_) |  _) :_
 1:M -748820 Jan 1970 -23:-20:00.556 * Ready to accept connections
 ```
 
-Open another console and use the `redis-cli` command above to query the server, same as above.
-Similarly, to close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut.
+To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
+
+```console
+redis-cli -h 172.44.0.2
+```
+
+You can test it using `set/get` commands:
+
+```text
+172.44.0.2:6379> set a 1
+OK
+172.44.0.2:6379> get a
+"1"
+172.44.0.2:6379>
+```
+
+Similar to the `x86_64` application, to close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut.
