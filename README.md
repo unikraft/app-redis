@@ -3,6 +3,62 @@
 This application starts a Redis web server with Unikraft.
 Follow the instructions below to set up, configure, build and run Redis.
 
+To get started immediately, you can use Unikraft's companion command-line companion tool, [`kraft`](https://github.com/unikraft/kraftkit).
+Start by running the interactive installer:
+
+```console
+curl --proto '=https' --tlsv1.2 -sSf https://get.kraftkit.sh | sudo sh
+```
+
+Once installed, clone [this repository](https://github.com/unikraft/app-redis) and run `kraft build`:
+
+```console
+git clone https://github.com/unikraft/app-redis redis
+cd redis/
+kraft build
+```
+
+This will guide you through an interactive build process where you can select one of the available targets (architecture/platform combinations).
+Otherwise, we recommend building for `qemu/x86_64` like so:
+
+```console
+kraft build --target redis-qemu-x86_64-initrd
+```
+
+Once built, you can instantiate the unikernel via:
+
+```console
+kraft run --target redis-qemu-x86_64-initrd --initrd ./fs0 -p 6379:6379 -- /redis.conf
+```
+
+If you don't have KVM support (such as when running inside a virtual machine), pass the `-W` option to `kraft run` to disable virtualization support:
+
+```console
+kraft run -W --target redis-qemu-x86_64-initrd --initrd ./fs0 -p 6379:6379 -- /redis.conf
+```
+
+When left without the `--target` argument, you'll be queried for the desired target from the list.
+
+To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
+
+```console
+redis-cli -h localhost
+```
+
+You can test it using `set/get` commands:
+
+```text
+127.0.0.1:6379> set a 1
+OK
+127.0.0.1:6379> get a
+"1"
+127.0.0.1:6379>
+```
+
+## Work with the Basic Build & Run Toolchain (Advanced)
+
+You can set up, configure, build and run the application from grounds up, without using the companion tool `kraft`.
+
 ### Quick Setup (aka TLDR)
 
 For a quick setup, run the commands below.
@@ -18,9 +74,9 @@ git clone https://github.com/unikraft/unikraft .unikraft/unikraft
 git clone https://github.com/unikraft/lib-redis .unikraft/libs/redis
 git clone https://github.com/unikraft/lib-musl .unikraft/libs/musl
 git clone https://github.com/unikraft/lib-lwip .unikraft/libs/lwip
-UK_DEFCONFIG=$(pwd)/.config.redis_qemu-x86_64 make defconfig
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-9pfs make defconfig
 make -j $(nproc)
-./run-qemu-x86_64.sh
+./run-qemu-x86_64-9pfs.sh
 ```
 
 This will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
@@ -29,15 +85,15 @@ The same can be done for `AArch64`, by running the commands below:
 
 ```console
 make properclean
-UK_DEFCONFIG=$(pwd)/.config.redis_qemu-arm64 make defconfig
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-9pfs make defconfig
 make -j $(nproc)
-./run-qemu-aarch64.sh
+./run-qemu-aarch64-9pfs.sh
 ```
 
 Similar to the `x86_64` build, this will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
 Information about every step is detailed below.
 
-## Requirements
+### Requirements
 
 In order to set up, configure, build and run Redis on Unikraft, the following packages are required:
 
@@ -87,7 +143,7 @@ sudo mkdir /etc/qemu/
 echo "allow all" | sudo tee /etc/qemu/bridge.conf
 ```
 
-## Set Up
+### Set Up
 
 The following repositories are required for Redis:
 
@@ -117,7 +173,7 @@ Follow the steps below for the setup:
       This will print the contents of the repository.
 
      ```text
-     fs0/  kraft.yaml  Makefile  Makefile.uk.default  README.md .config.redis_qemu-x86_64 .config.redis_qemu-arm64
+     fs0/  kraft.yaml  Makefile  Makefile.uk.default  README.md .config.redis-qemu-x86_64-9pfs .config.redis-qemu-aarch64-9pfs [...]  run-fc-x86_64-initrd.sh*  run-qemu-aarch64-9pfs.sh*  [...]
      ```
 
   1. While inside the `redis/` directory, create the `.unikraft/` directory:
@@ -191,7 +247,7 @@ Follow the steps below for the setup:
      10 directories, 7 files
      ```
 
-## Configure
+### Configure
 
 Configuring, building and running a Unikraft application depends on our choice of platform and architecture.
 Currently, supported platforms are QEMU (KVM), Xen and linuxu.
@@ -201,12 +257,12 @@ Supported architectures are x86_64 and AArch64.
 
 Use the corresponding the configuration files (`config-...`), according to your choice of platform and architecture.
 
-### QEMU x86_64
+#### QEMU x86_64
 
-Use the `config-qemu-x86_64` configuration file together with `make defconfig` to create the configuration file:
+Use the `.config.redis-qemu-x86_64-9pfs` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-UK_DEFCONFIG=$(pwd)/config-qemu-x86_64 make defconfig
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-9pfs make defconfig
 ```
 
 This results in the creation of the `.config` file:
@@ -218,22 +274,22 @@ ls .config
 
 The `.config` file will be used in the build step.
 
-### QEMU AArch64
+#### QEMU AArch64
 
-Use the `config-qemu-aarch64` configuration file together with `make defconfig` to create the configuration file:
+Use the `.config.redis-qemu-aarch64-9pfs` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-UK_DEFCONFIG=$(pwd)/config-qemu-aarch64 make defconfig
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-9pfs make defconfig
 ```
 
 Similar to the x86_64 configuration, this results in the creation of the `.config` file that will be used in the build step.
 
-## Build
+### Build
 
 Building uses as input the `.config` file from above, and results in a unikernel image as output.
 The unikernel output image, together with intermediary build files, are stored in the `build/` directory.
 
-### Clean Up
+#### Clean Up
 
 Before starting a build on a different platform or architecture, you must clean up the build output.
 This may also be required in case of a new configuration.
@@ -246,7 +302,7 @@ Cleaning up is done with 3 possible commands:
 
 Typically, you would use `make properclean` to remove all build artifacts, but keep the configuration file.
 
-### QEMU x86_64
+#### QEMU x86_64
 
 Building for QEMU x86_64 assumes you did the QEMU x86_64 configuration step above.
 Build the Unikraft Redis image for QEMU x86_64 by using the command below:
@@ -269,7 +325,7 @@ make[1]: Leaving directory '/media/razvan/c4f6765a-efa5-4ebd-9cf0-7da9908a0189/r
 At the end of the build command, the `redis_qemu-x86_64` unikernel image is generated.
 This image is to be used in the run step.
 
-### QEMU AArch64
+#### QEMU AArch64
 
 If you had configured and build a unikernel image for another platform or architecture (such as x86_64) before, then:
 
@@ -300,14 +356,14 @@ make[1]: Leaving directory '/media/razvan/c4f6765a-efa5-4ebd-9cf0-7da9908a0189/r
 Similarly to x86_64, at the end of the build command, the `redis_qemu-arm64` unikernel image is generated.
 This image is to be used in the run step.
 
-## Run
+### Run
 
-### QEMU x86_64
+#### QEMU x86_64
 
-To run the QEMU x86_64 build, use the `run-qemu-x86_64.sh` script:
+To run the QEMU x86_64 build, use the `run-qemu-x86_64-9pfs.sh` script:
 
 ```console
-./run-qemu-x86_64.sh
+./run-qemu-x86_64-9pfs.sh
 ```
 
 You should now see the Redis server banner:
@@ -385,12 +441,12 @@ OK
 To close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut;
 that is press the `Ctrl` and `a` keys at the same time and then, separately, press the `x` key.
 
-### QEMU AArch64
+#### QEMU AArch64
 
-To run the AArch64 build, use the `run-qemu-aarch.sh` script:
+To run the AArch64 build, use the `run-qemu-aarch64-9pfs.sh` script:
 
 ```console
-./run-qemu-aarch64.sh
+./run-qemu-aarch64-9pfs.sh
 ```
 
 You should now see the Redis server banner, just like when running for x86_64.
@@ -455,3 +511,73 @@ OK
 ```
 
 Similar to the `x86_64` application, to close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut.
+
+### Building and Running with initrd
+
+The examples above use 9pfs as the filesystem interface.
+Clean up the previous configuration, use the initrd configuration and build the unikernel by using the commands:
+
+```console
+make distclean
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-initrd make defconfig
+make -j $(nproc)
+```
+
+To run the QEMU x86_64 initrd build, use `run-qemu-x86_64-initrd.sh`:
+
+```console
+./run-qemu-x86_64-initrd.sh
+```
+
+The commands for AArch64 are similar:
+
+```console
+make distclean
+UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-initrd make defconfig
+make -j $(nproc)
+./run-qemu-aarch64-initrd.sh
+```
+
+### Building and Running with Firecracker
+
+[Firecracker](https://firecracker-microvm.github.io/) is a lightweight VMM (*virtual machine manager*) that can be used as more efficient alternative to QEMU.
+
+Configure and build commands are similar to a QEMU-based build with an initrd-based filesystem:
+
+```console
+make distclean
+UK_DEFCONFIG=$(pwd)/.config.redis-fc-x86_64-initrd make defconfig
+make -j $(nproc)
+```
+
+To use Firecraker, you need to download a [Firecracker release](https://github.com/firecracker-microvm/firecracker/releases).
+You can use the commands below to make the `firecracker-x86_64` executable from release v1.4.0 available globally in the command line:
+
+```console
+cd /tmp 
+wget https://github.com/firecracker-microvm/firecracker/releases/download/v1.4.0/firecracker-v1.4.0-x86_64.tgz
+tar xzf firecracker-v1.4.0-x86_64.tgz 
+sudo cp release-v1.4.0-x86_64/firecracker-v1.4.0-x86_64 /usr/local/bin/firecracker-x86_64
+```
+
+To run a unikernel image, you need to configure a JSON file.
+This is the `redis-fc-x86_64-initrd.json` file.
+This configuration file is uses as part of the run script `run-fc-x86_64-initrd`:
+
+```console
+./run-qemu-x86_64-initrd.sh
+```
+
+Same as running with QEMU, the application will start:
+
+```text
+Powered by
+o.   .o       _ _               __ _
+Oo   Oo  ___ (_) | __ __  __ _ ' _) :_
+oO   oO ' _ `| | |/ /  _)' _` | |_|  _)
+oOo oOO| | | | |   (| | | (_) |  _) :_
+ OoOoO ._, ._:_:_,\_._,  .__,_:_, \___)
+                  Atlas 0.13.1~f7511c8b
+```
+
+Note that, currently (release 0.14), there is not yet networking support in Unikraft for Firecracker, so Redis cannot be properly used.
