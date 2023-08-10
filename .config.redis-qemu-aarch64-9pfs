@@ -2,11 +2,7 @@
 # Automatically generated file; DO NOT EDIT.
 # Unikraft/0.13.1~f3401222 Configuration
 #
-CONFIG_UK_FULLVERSION="0.13.1~f3401222"
-CONFIG_UK_CODENAME="Atlas"
 CONFIG_UK_ARCH="arm64"
-CONFIG_UK_BASE="/home/teodor/Documents/ac/unikraft_redis/unikraft"
-CONFIG_UK_APP="/home/teodor/Documents/ac/unikraft_redis/apps/redis"
 CONFIG_UK_DEFNAME="redis"
 
 #
@@ -20,9 +16,9 @@ CONFIG_MCPU_ARM64_NONE=y
 #
 # end of Armv8-A Extensions
 
-CONFIG_ARM64_ERRATUM_858921=y
-CONFIG_ARM64_ERRATUM_835769=y
-CONFIG_ARM64_ERRATUM_843419=y
+CONFIG_ARM64_ERRATUM_858921=n
+CONFIG_ARM64_ERRATUM_835769=n
+CONFIG_ARM64_ERRATUM_843419=n
 CONFIG_STACK_SIZE_PAGE_ORDER=4
 # end of Architecture Selection
 
