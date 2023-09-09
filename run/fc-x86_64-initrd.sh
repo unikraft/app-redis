@@ -14,4 +14,4 @@ sudo ip link set dev tap0 up
 rm /tmp/firecracker.socket
 firecracker-x86_64 \
     --api-sock /tmp/firecracker.socket \
-    --config-file redis-fc-x86_64-initrd.json
+    --config-file run/fc-x86_64-initrd.json

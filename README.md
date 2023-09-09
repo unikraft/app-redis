@@ -77,7 +77,7 @@ git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64-9pfs make defconfig
 make prepare
 make -j $(nproc)
-./run-qemu-x86_64-9pfs.sh
+./run/qemu-x86_64-9pfs.sh
 ```
 
 This will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
@@ -89,7 +89,7 @@ make properclean
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-9pfs make defconfig
 make prepare
 make -j $(nproc)
-./run-qemu-aarch64-9pfs.sh
+./run/qemu-aarch64-9pfs.sh
 ```
 
 Similar to the `x86_64` build, this will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
@@ -362,10 +362,10 @@ This image is to be used in the run step.
 
 #### QEMU x86_64
 
-To run the QEMU x86_64 build, use the `run-qemu-x86_64-9pfs.sh` script:
+To run the QEMU x86_64 build, use the `./run/qemu-x86_64-9pfs.sh` script:
 
 ```console
-./run-qemu-x86_64-9pfs.sh
+./run/qemu-x86_64-9pfs.sh
 ```
 
 You should now see the Redis server banner:
@@ -445,10 +445,10 @@ that is press the `Ctrl` and `a` keys at the same time and then, separately, pre
 
 #### QEMU AArch64
 
-To run the AArch64 build, use the `run-qemu-aarch64-9pfs.sh` script:
+To run the AArch64 build, use the `./run/qemu-aarch64-9pfs.sh` script:
 
 ```console
-./run-qemu-aarch64-9pfs.sh
+./run/qemu-aarch64-9pfs.sh
 ```
 
 You should now see the Redis server banner, just like when running for x86_64.
@@ -526,10 +526,10 @@ make prepare
 make -j $(nproc)
 ```
 
-To run the QEMU x86_64 initrd build, use `run-qemu-x86_64-initrd.sh`:
+To run the QEMU x86_64 initrd build, use `./run/qemu-x86_64-initrd.sh`:
 
 ```console
-./run-qemu-x86_64-initrd.sh
+./run/qemu-x86_64-initrd.sh
 ```
 
 The commands for AArch64 are similar:
@@ -539,7 +539,7 @@ make distclean
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-initrd make defconfig
 make prepare
 make -j $(nproc)
-./run-qemu-aarch64-initrd.sh
+./run/qemu-aarch64-initrd.sh
 ```
 
 ### Building and Running with Firecracker
@@ -566,11 +566,11 @@ sudo cp release-v1.4.0-x86_64/firecracker-v1.4.0-x86_64 /usr/local/bin/firecrack
 ```
 
 To run a unikernel image, you need to configure a JSON file.
-This is the `redis-fc-x86_64-initrd.json` file.
-This configuration file is uses as part of the run script `run-fc-x86_64-initrd`:
+This is the `run/fc-x86_64-initrd.json` file.
+This configuration file is used as part of the run script `./run/fc-x86_64-initrd.sh`:
 
 ```console
-./run-qemu-x86_64-initrd.sh
+./run/fc-x86_64-initrd.sh
 ```
 
 Same as running with QEMU, the application will start:
