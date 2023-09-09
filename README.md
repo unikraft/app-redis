@@ -74,7 +74,7 @@ git clone https://github.com/unikraft/unikraft workdir/unikraft
 git clone https://github.com/unikraft/lib-redis workdir/libs/redis
 git clone https://github.com/unikraft/lib-musl workdir/libs/musl
 git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-9pfs make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64-9pfs make defconfig
 make prepare
 make -j $(nproc)
 ./run-qemu-x86_64-9pfs.sh
@@ -86,7 +86,7 @@ The same can be done for `AArch64`, by running the commands below:
 
 ```console
 make properclean
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-9pfs make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-9pfs make defconfig
 make prepare
 make -j $(nproc)
 ./run-qemu-aarch64-9pfs.sh
@@ -175,7 +175,7 @@ Follow the steps below for the setup:
       This will print the contents of the repository.
 
      ```text
-     fs0/  kraft.yaml  Makefile  Makefile.uk.default  README.md .config.redis-qemu-x86_64-9pfs .config.redis-qemu-aarch64-9pfs [...]  run-fc-x86_64-initrd.sh*  run-qemu-aarch64-9pfs.sh*  [...]
+     defconfigs/  fs0/  kraft.yaml  Makefile  Makefile.uk  README.md [...]  run-fc-x86_64-initrd.sh*  run-qemu-aarch64-9pfs.sh*  [...]
      ```
 
   1. While inside the `redis/` directory, create the `workdir/` directory:
@@ -261,10 +261,10 @@ Use the corresponding the configuration files (`config-...`), according to your 
 
 #### QEMU x86_64
 
-Use the `.config.redis-qemu-x86_64-9pfs` configuration file together with `make defconfig` to create the configuration file:
+Use the `defconfigs/qemu-x86_64-9pfs` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-9pfs make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64-9pfs make defconfig
 ```
 
 This results in the creation of the `.config` file:
@@ -278,10 +278,10 @@ The `.config` file will be used in the build step.
 
 #### QEMU AArch64
 
-Use the `.config.redis-qemu-aarch64-9pfs` configuration file together with `make defconfig` to create the configuration file:
+Use the `defconfigs/qemu-aarch64-9pfs` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-9pfs make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-9pfs make defconfig
 ```
 
 Similar to the x86_64 configuration, this results in the creation of the `.config` file that will be used in the build step.
@@ -521,7 +521,7 @@ Clean up the previous configuration, use the initrd configuration and build the 
 
 ```console
 make distclean
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-x86_64-initrd make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64-initrd make defconfig
 make prepare
 make -j $(nproc)
 ```
@@ -536,7 +536,7 @@ The commands for AArch64 are similar:
 
 ```console
 make distclean
-UK_DEFCONFIG=$(pwd)/.config.redis-qemu-aarch64-initrd make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-initrd make defconfig
 make prepare
 make -j $(nproc)
 ./run-qemu-aarch64-initrd.sh
@@ -550,7 +550,7 @@ Configure and build commands are similar to a QEMU-based build with an initrd-ba
 
 ```console
 make distclean
-UK_DEFCONFIG=$(pwd)/.config.redis-fc-x86_64-initrd make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/fc-x86_64-initrd make defconfig
 make prepare
 make -j $(nproc)
 ```
