@@ -184,41 +184,23 @@ Follow the steps below for the setup:
      mkdir workdir
      ```
 
-     Enter the `workdir/` directory:
+  1. Clone the [`unikraft` repository](https://github.com/unikraft/unikraft):
 
      ```console
-     cd workdir/
+     git clone https://github.com/unikraft/unikraft workdir/unikraft
      ```
 
-  1. While inside the `workdir` directory, clone the [`unikraft` repository](https://github.com/unikraft/unikraft):
+  1. Clone the library repositories in the `libs/` directory:
 
      ```console
-     git clone https://github.com/unikraft/unikraft unikraft
+     git clone https://github.com/unikraft/lib-redis workdir/libs/redis
+
+     git clone https://github.com/unikraft/lib-musl workdir/libs/musl
+
+     git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
      ```
 
-  1. While inside the `workdir/` directory, create the `libs/` directory:
-
-     ```console
-     mkdir libs
-     ```
-
-  1. While inside the `workdir/` directory, clone the library repositories in the `libs/` directory:
-
-     ```console
-     git clone https://github.com/unikraft/lib-redis libs/redis
-
-     git clone https://github.com/unikraft/lib-musl libs/musl
-
-     git clone https://github.com/unikraft/lib-lwip libs/lwip
-     ```
-
-  1. Get back to the application directory:
-
-     ```console
-     cd ../
-     ```
-
-     Use the `tree` command to inspect the contents of the `workdir/` directory.
+  1. Use the `tree` command to inspect the contents of the `workdir/` directory.
 
      ```console
      tree -F -L 2 workdir/
