@@ -1,6 +1,6 @@
 #!/bin/sh
 
-kernel_image="build/redis_qemu-arm64"
+kernel_image="workdir/build/redis_qemu-arm64"
 
 if test $# -eq 1; then
     kernel_image="$1"
