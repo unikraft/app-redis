@@ -55,6 +55,47 @@ OK
 127.0.0.1:6379>
 ```
 
+## Other Builds
+
+You can use `kraft` to build (and run) other Redis unikernels.
+When you run:
+
+```console
+kraft build
+```
+
+an interactive menu will pop up, letting you choose the image to build, out of the targets part of the `kraft.yaml` file:
+
+```text
+redis-fc-aarch64-initrd (fc/arm64)
+redis-fc-x86_64-initrd (fc/x86_64)
+redis-qemu-aarch64-9pfs (qemu/arm64)
+redis-qemu-aarch64-initrd (qemu/arm64)
+redis-qemu-x86_64-9pfs (qemu/x86_64)
+redis-qemu-x86_64-initrd (qemu/x86_64)
+```
+
+Note that, if you want to build for a different architecture then the previous build, currently you are required to remove the generated files.
+For that, run the command:
+
+```console
+rm -fr .config* .unikraft/
+```
+
+Based on your chosen build, it's quickest the scripts in the `run/` directory to run a Unikraft Redis instance using `kraft`.
+For example, after building the `redis-qemu-aarch64-initrd` target, you would use:
+
+```console
+./run/kraft-qemu-aarch64-initrd.sh
+```
+
+Try all the different builds and scripts to run them.
+Look into the scripts for the `kraft` commands used:
+
+```console
+cat run/kraft-qemu-aarch64-initrd.sh
+```
+
 ## Work with the Basic Build & Run Toolchain (Advanced)
 
 You can set up, configure, build and run the application from grounds up, without using the companion tool `kraft`.
