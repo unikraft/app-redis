@@ -1,5 +1,5 @@
-UK_ROOT ?= $(PWD)/.unikraft/unikraft
-UK_LIBS ?= $(PWD)/.unikraft/libs
+UK_ROOT ?= $(PWD)/workdir/unikraft
+UK_LIBS ?= $(PWD)/workdir/libs
 LIBS := $(UK_LIBS)/musl:$(UK_LIBS)/lwip:$(UK_LIBS)/redis
 
 all:
