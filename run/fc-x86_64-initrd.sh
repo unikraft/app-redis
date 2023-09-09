@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd fs0
-find -depth -print | tac | bsdcpio -o --format newc > ../fs0.cpio
+cd rootfs
+find -depth -print | tac | bsdcpio -o --format newc > ../rootfs.cpio
 cd ..
 
 sudo ip link set dev tap0 down 2> /dev/null
