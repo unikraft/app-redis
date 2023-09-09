@@ -287,7 +287,7 @@ Similar to the x86_64 configuration, this results in the creation of the `.confi
 ### Build
 
 Building uses as input the `.config` file from above, and results in a unikernel image as output.
-The unikernel output image, together with intermediary build files, are stored in the `build/` directory.
+The unikernel output image, together with intermediary build files, are stored in the `workdir/build/` directory.
 
 #### Clean Up
 
@@ -297,8 +297,8 @@ This may also be required in case of a new configuration.
 Cleaning up is done with 3 possible commands:
 
 * `make clean`: cleans all actual build output files (binary files, including the unikernel image)
-* `make properclean`: removes the entire `build/` directory
-* `make distclean`: removes the entire `build/` directory **and** the `.config` file
+* `make properclean`: removes the entire `workdir/build/` directory
+* `make distclean`: removes the entire `workdir/build/` directory **and** the `.config` file
 
 Typically, you would use `make properclean` to remove all build artifacts, but keep the configuration file.
 
