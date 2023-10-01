@@ -31,7 +31,7 @@ targets:
       - CONFIG_LIBVFSCORE_AUTOMOUNT_ROOTFS=y
       - CONFIG_LIBVFSCORE_ROOTFS_INITRD=y
       - CONFIG_LIBVFSCORE_ROOTFS="initrd"
-  - name: redis-qemu-aarch64-9pfs
+  - name: redis-qemu-arm64-9pfs
     architecture: arm64
     platform: qemu
     kconfig:
@@ -42,7 +42,7 @@ targets:
       - CONFIG_LIBVFSCORE_ROOTFS_9PFS=y
       - CONFIG_LIBVFSCORE_ROOTFS="9pfs"
       - CONFIG_LIBVFSCORE_ROOTDEV="fs1"
-  - name: redis-qemu-aarch64-initrd
+  - name: redis-qemu-arm64-initrd
     architecture: arm64
     platform: qemu
     kconfig:
@@ -59,10 +59,13 @@ targets:
       - CONFIG_PLAT_KVM=y
       - CONFIG_KVM_BOOT_PROTO_LXBOOT=y
       - CONFIG_KVM_VMM_FIRECRACKER=y
+      - CONFIG_LIBVIRTIO_BUS=y
+      - CONFIG_LIBVIRTIO_MMIO=y
+      - CONFIG_LIBUKBUS=y
       - CONFIG_LIBVFSCORE_AUTOMOUNT_ROOTFS=y
       - CONFIG_LIBVFSCORE_ROOTFS_INITRD=y
       - CONFIG_LIBVFSCORE_ROOTFS="initrd"
-  - name: redis-fc-aarch64-initrd
+  - name: redis-fc-arm64-initrd
     architecture: arm64
     platform: fc
     kconfig:
@@ -70,6 +73,9 @@ targets:
       - CONFIG_KVM_BOOT_PROTO_LXBOOT=y
       - CONFIG_KVM_VMM_FIRECRACKER=y
       - CONFIG_ARCH_ARM_64=y
+      - CONFIG_LIBVIRTIO_BUS=y
+      - CONFIG_LIBVIRTIO_MMIO=y
+      - CONFIG_LIBUKBUS=y
       - CONFIG_MCPU_ARM64_NONE=y
       - CONFIG_LIBVFSCORE_AUTOMOUNT_ROOTFS=y
       - CONFIG_LIBVFSCORE_ROOTFS_INITRD=y
@@ -79,18 +85,6 @@ libraries:
     version: stable
   lwip:
     version: stable
-    kconfig:
-      - CONFIG_LWIP_UKNETDEV=y
-      - CONFIG_LWIP_TCP=y
-      - CONFIG_LWIP_WND_SCALE=y
-      - CONFIG_LWIP_TCP_KEEPALIVE=y
-      - CONFIG_LWIP_THREADS=y
-      - CONFIG_LWIP_SOCKET=y
-      - CONFIG_LWIP_AUTOIFACE=y
-      - CONFIG_LWIP_IPV4=y
-      - CONFIG_LWIP_IPV6=y
-      - CONFIG_LWIP_DHCP=y
-      - CONFIG_LWIP_DNS=y
   redis:
     version: stable
     kconfig:
