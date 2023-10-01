@@ -1,0 +1,5 @@
+runs:
+  - rootfs: rootfs/
+    memory: 256
+    networking: True
+    command: /redis.conf
