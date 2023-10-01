@@ -28,13 +28,13 @@ kraft build --target redis-qemu-x86_64-initrd
 Once built, you can instantiate the unikernel via:
 
 ```console
-kraft run --target redis-qemu-x86_64-initrd --initrd ./fs0 -p 6379:6379 -- /redis.conf
+kraft run --target redis-qemu-x86_64-initrd --initrd ./rootfs -p 6379:6379 -- /redis.conf
 ```
 
 If you don't have KVM support (such as when running inside a virtual machine), pass the `-W` option to `kraft run` to disable virtualization support:
 
 ```console
-kraft run -W --target redis-qemu-x86_64-initrd --initrd ./fs0 -p 6379:6379 -- /redis.conf
+kraft run -W --target redis-qemu-x86_64-initrd --initrd ./rootfs -p 6379:6379 -- /redis.conf
 ```
 
 When left without the `--target` argument, you'll be queried for the desired target from the list.
@@ -55,52 +55,7 @@ OK
 127.0.0.1:6379>
 ```
 
-## Other Builds
-
-You can use `kraft` to build (and run) other Redis unikernels.
-When you run:
-
-```console
-kraft build
-```
-
-an interactive menu will pop up, letting you choose the image to build, out of the targets part of the `kraft.yaml` file:
-
-```text
-redis-fc-aarch64-initrd (fc/arm64)
-redis-fc-x86_64-initrd (fc/x86_64)
-redis-qemu-aarch64-9pfs (qemu/arm64)
-redis-qemu-aarch64-initrd (qemu/arm64)
-redis-qemu-x86_64-9pfs (qemu/x86_64)
-redis-qemu-x86_64-initrd (qemu/x86_64)
-```
-
-Note that, if you want to build for a different architecture then the previous build, currently you are required to remove the generated files.
-For that, run the command:
-
-```console
-rm -fr .config* .unikraft/
-```
-
-Based on your chosen build, it's quickest the scripts in the `run/` directory to run a Unikraft Redis instance using `kraft`.
-For example, after building the `redis-qemu-aarch64-initrd` target, you would use:
-
-```console
-./run/kraft-qemu-aarch64-initrd.sh
-```
-
-Try all the different builds and scripts to run them.
-Look into the scripts for the `kraft` commands used:
-
-```console
-cat run/kraft-qemu-aarch64-initrd.sh
-```
-
-## Work with the Basic Build & Run Toolchain (Advanced)
-
-You can set up, configure, build and run the application from grounds up, without using the companion tool `kraft`.
-
-### Quick Setup (aka TLDR)
+## Quick Setup (aka TLDR)
 
 For a quick setup, run the commands below.
 Note that you still need to install the [requirements](#requirements).
@@ -110,33 +65,21 @@ For building and running everything for `x86_64`, follow the steps below:
 ```console
 git clone https://github.com/unikraft/app-redis redis
 cd redis/
-mkdir workdir
-git clone https://github.com/unikraft/unikraft workdir/unikraft
-git clone https://github.com/unikraft/lib-redis workdir/libs/redis
-git clone https://github.com/unikraft/lib-musl workdir/libs/musl
-git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64-9pfs make defconfig
-make prepare
-make -j $(nproc)
-./run/qemu-x86_64-9pfs.sh
+wget https://raw.githubusercontent.com/unikraft/app-testing/staging/scripts/generate.py -O scripts/generate.py
+chmod a+x scripts/generate.py
+./scripts/generate.py
+./scripts/build/make-qemu-x86_64-9pfs.sh
+./scripts/run/qemu-x86_64-9pfs.sh
 ```
 
 This will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
 
-The same can be done for `AArch64`, by running the commands below:
+Close the QEMU instance by using the `Ctrl+a x` keyboard combination.
+That is, press `Ctrl` and `a` simultaneously, then release and press `x`.
 
-```console
-make properclean
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-9pfs make defconfig
-make prepare
-make -j $(nproc)
-./run/qemu-aarch64-9pfs.sh
-```
-
-Similar to the `x86_64` build, this will configure, build and run the `redis` server, that can be tested using the instructions in the [running section](#run).
 Information about every step is detailed below.
 
-### Requirements
+## Requirements
 
 In order to set up, configure, build and run Redis on Unikraft, the following packages are required:
 
@@ -209,35 +152,21 @@ Follow the steps below for the setup:
 
      ```console
      cd redis/
-
-     ls -a
+     ls -F
      ```
 
       This will print the contents of the repository.
 
      ```text
-     defconfigs/  fs0/  kraft.yaml  Makefile  Makefile.uk  README.md [...]  run-fc-x86_64-initrd.sh*  run-qemu-aarch64-9pfs.sh*  [...]
+     defconfigs/  kraft.cloud.yaml  kraft.yaml  Makefile  Makefile.uk  README.md  rootfs/  scripts/
      ```
 
-  1. While inside the `redis/` directory, create the `workdir/` directory:
-
-     ```console
-     mkdir workdir
-     ```
-
-  1. Clone the [`unikraft` repository](https://github.com/unikraft/unikraft):
+  1. While inside the `redis/` directory, clone all required repositories:
 
      ```console
      git clone https://github.com/unikraft/unikraft workdir/unikraft
-     ```
-
-  1. Clone the library repositories in the `libs/` directory:
-
-     ```console
      git clone https://github.com/unikraft/lib-redis workdir/libs/redis
-
      git clone https://github.com/unikraft/lib-musl workdir/libs/musl
-
      git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
      ```
 
@@ -272,6 +201,172 @@ Follow the steps below for the setup:
      10 directories, 7 files
      ```
 
+## Scripted Building and Running
+
+To build and run Unikraft images, it's easiest to generate build and running scripts and use those.
+
+### Set Up
+
+First of all, grab the [`generate.py` script](https://github.com/unikraft/app-testing/blob/staging/scripts/generate.py) and place it in the `scripts/` directory by running:
+
+```console
+wget https://raw.githubusercontent.com/unikraft/app-testing/staging/scripts/generate.py -O scripts/generate.py
+chmod a+x scripts/generate.py
+```
+
+Now, run the `generate.py` script.
+You must run it in the root directory of this repository:
+
+```console
+./scripts/generate.py
+```
+
+Running the script will generate build and run scripts in the `scripts/build/` and the `scripts/run/` directories:
+
+```text
+scripts/
+|-- build/
+|   |-- kraft-fc-arm64-initrd.sh*
+|   |-- kraft-fc-x86_64-initrd.sh*
+|   |-- kraft-qemu-arm64-9pfs.sh*
+|   |-- kraft-qemu-arm64-initrd.sh*
+|   |-- kraft-qemu-x86_64-9pfs.sh*
+|   |-- kraft-qemu-x86_64-initrd.sh*
+|   |-- make-fc-arm64-initrd.sh*
+|   |-- make-fc-x86_64-initrd.sh*
+|   |-- make-qemu-arm64-9pfs.sh*
+|   |-- make-qemu-arm64-initrd.sh*
+|   |-- make-qemu-x86_64-9pfs.sh*
+|   `-- make-qemu-x86_64-initrd.sh*
+|-- generate.py*
+|-- run/
+|   |-- fc-arm64-initrd.json
+|   |-- fc-arm64-initrd.sh*
+|   |-- fc-x86_64-initrd.json
+|   |-- fc-x86_64-initrd.sh*
+|   |-- kraft-fc-arm64-initrd.sh*
+|   |-- kraft-fc-x86_64-initrd.sh*
+|   |-- kraft-qemu-arm64-9pfs.sh*
+|   |-- kraft-qemu-arm64-initrd.sh*
+|   |-- kraft-qemu-x86_64-9pfs.sh*
+|   |-- kraft-qemu-x86_64-initrd.sh*
+|   |-- qemu-arm64-9pfs.sh*
+|   |-- qemu-arm64-initrd.sh*
+|   |-- qemu-x86_64-9pfs.sh*
+|   `-- qemu-x86_64-initrd.sh*
+`-- run.yaml
+```
+
+They are shell scripts, so you can use an editor or a text viewer to check their contents:
+
+```console
+cat scripts/run/qemu-x86_64-9pfs.sh
+```
+
+### Build and Run
+
+You can now build and run images for different configurations
+
+For example, to build and run for Firecracker on x86_64, run:
+
+```console
+./scripts/build/make-fc-x86_64-initrd.sh
+./scripts/run/fc-x86_64-initrd.sh
+```
+
+To build and run for QEMU on x86_64 using KraftKit, run:
+
+```console
+./scripts/build/kraft-qemu-x86_64-9pfs.sh
+./scripts/run/kraft-qemu-x86_64-9pfs.sh
+```
+
+The run script will start a Redis server.
+Note that, currently (release 0.14), there is not yet networking support in Unikraft for Firecracker, so Redis cannot be properly used.
+
+You should now see the Redis server banner:
+
+```text
+Powered by
+o.   .o       _ _               __ _
+Oo   Oo  ___ (_) | __ __  __ _ ' _) :_
+oO   oO ' _ `| | |/ /  _)' _` | |_|  _)
+oOo oOO| | | | |   (| | | (_) |  _) :_
+ OoOoO ._, ._:_:_,\_._,  .__,_:_, \___)
+             Prometheus 0.14.0~a45354b4
+1:C 06 Jan 1992 19:04:00.012 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 06 Jan 1992 19:04:00.013 # Redis version=7.0.11, bits=64, commit=c5ee3442, modified=1, pid=1, just started
+1:C 06 Jan 1992 19:04:00.015 # Configuration loaded
+[    0.137956] ERR:  [libposix_process] <deprecated.c @  348> Ignore updating resource 7: cur = 10032, max = 10032
+1:M 06 Jan 1992 19:04:00.039 * Increased maximum number of open files to 10032 (it was originally set to 1024).
+1:M 06 Jan 1992 19:04:00.041 * monotonic clock: POSIX clock_gettime
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           Redis 7.0.11 (c5ee3442/1) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 1
+  `-._    `-._  `-./  _.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |           https://redis.io
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
+
+1:M 06 Jan 1992 19:04:00.061 # WARNING: The TCP backlog setting of 511 cannot be enforced because SOMAXCONN is set to the lower value of 128.
+1:M 06 Jan 1992 19:04:00.063 # Server initialized
+1:M 06 Jan 1992 19:04:00.072 * Ready to accept connections
+```
+
+### Use
+
+The server listens for connections on the `172.44.0.2` address advertised.
+A Redis client (such as
+[`redis-cli`](https://github.com/unikraft/summer-of-code-2021/blob/main/content/en/docs/sessions/04-complex-applications/sol/03-set-up-and-run-redis/redis-cli))
+is required to query the server.
+
+To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
+
+```console
+redis-cli -h 172.44.0.2
+```
+
+You can test it using `set/get` commands:
+
+```text
+172.44.0.2:6379> set a 1
+OK
+172.44.0.2:6379> get a
+"1"
+172.44.0.2:6379>
+```
+
+### Stop
+
+To close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut;
+that is press the `Ctrl` and `a` keys at the same time and then, separately, press the `x` key.
+
+Close KraftKit-opened instances by running `Ctrl+c`.
+Then, check the open instances by using `kraft ps` or `sudo kraft ps.
+Stop the instances by running `kraft stop <instance-id>`.
+
+Close the QEMU instance by using the `Ctrl+a x` keyboard combination.
+That is, press `Ctrl` and `a` simultaneously, then release and press `x`.
+
+For Firecracker, you would have to kill the process by issuing a command.
+Simplest is to open up another console and run:
+
+```console
+pkill -f firecracker
+```
+
+## Detailed Steps
+
 ### Configure
 
 Configuring, building and running a Unikraft application depends on our choice of platform and architecture.
@@ -301,10 +396,10 @@ The `.config` file will be used in the build step.
 
 #### QEMU AArch64
 
-Use the `defconfigs/qemu-aarch64-9pfs` configuration file together with `make defconfig` to create the configuration file:
+Use the `defconfigs/qemu-arm64-9pfs` configuration file together with `make defconfig` to create the configuration file:
 
 ```console
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-9pfs make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-arm64-9pfs make defconfig
 ```
 
 Similar to the x86_64 configuration, this results in the creation of the `.config` file that will be used in the build step.
@@ -330,9 +425,10 @@ Typically, you would use `make properclean` to remove all build artifacts, but k
 #### QEMU x86_64
 
 Building for QEMU x86_64 assumes you did the QEMU x86_64 configuration step above.
-Build the Unikraft Redis image for QEMU x86_64 by using the command below:
+Build the Unikraft Redis image for QEMU x86_64 by using the commands below:
 
 ```console
+make prepare
 make -j $(nproc)
 ```
 
@@ -364,6 +460,7 @@ Building for QEMU AArch64 assumes you did the QEMU AArch64 configuration step ab
 Build the Unikraft Redis image for QEMU AArch64 by using the same command as for x86_64:
 
 ```console
+make prepare
 make -j $(nproc)
 ```
 
@@ -385,157 +482,62 @@ This image is to be used in the run step.
 
 #### QEMU x86_64
 
-To run the QEMU x86_64 build, use the `./run/qemu-x86_64-9pfs.sh` script:
+To run the QEMU x86_64 build, use commands below to create a network setup and then start a Redis Unikraft instance:
 
 ```console
-./run/qemu-x86_64-9pfs.sh
-```
-
-You should now see the Redis server banner:
-
-```text
-SeaBIOS (version 1.13.0-1ubuntu1.1)
-
-
-iPXE (http://ipxe.org) 00:04.0 CA00 PCI2.10 PnP PMM+07F8C860+07ECC860 CA00
-
-
-Booting from ROM..1: Set IPv4 address 172.44.0.2 mask 255.255.255.0 gw 172.44.0.1
-en1: Added
-en1: Interface is up
-Powered by
-o.   .o       _ _               __ _
-Oo   Oo  ___ (_) | __ __  __ _ ' _) :_
-oO   oO ' _ `| | |/ /  _)' _` | |_|  _)
-oOo oOO| | | | |   (| | | (_) |  _) :_
- OoOoO ._, ._:_:_,\_._,  .__,_:_, \___)
-                  Atlas 0.13.1~5eb820bd
-1:C 10 Jul 2015 09:05:19.076 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-1:C 10 Jul 2015 09:05:19.078 # Redis version=7.0.11, bits=64, commit=c5ee3442, modified=1, pid=1, just started
-1:C 10 Jul 2015 09:05:19.079 # Configuration loaded
-[    0.195035] ERR:  [libposix_process] <deprecated.c @  348> Ignore updating resource 7: cur = 10032, max = 10032
-1:M 10 Jul 2015 09:05:19.096 * Increased maximum number of open files to 10032 (it was originally set to 1024).
-1:M 10 Jul 2015 09:05:19.098 * monotonic clock: POSIX clock_gettime
-                _._
-           _.-``__ ''-._
-      _.-``    `.  `_.  ''-._           Redis 7.0.11 (c5ee3442/1) 64 bit
-  .-`` .-```.  ```\/    _.,_ ''-._
- (    '      ,       .-`  | `,    )     Running in standalone mode
- |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
- |    `-._   `._    /     _.-'    |     PID: 1
-  `-._    `-._  `-./  _.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |           https://redis.io
-  `-._    `-._`-.__.-'_.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |
-  `-._    `-._`-.__.-'_.-'    _.-'
-      `-._    `-.__.-'    _.-'
-          `-._        _.-'
-              `-.__.-'
-
-1:M 10 Jul 2015 09:05:19.145 # WARNING: The TCP backlog setting of 511 cannot be enforced because SOMAXCONN is set to the lower value of 128.
-1:M 10 Jul 2015 09:05:19.148 # Server initialized
-1:M 10 Jul 2015 09:05:19.158 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M 10 Jul 2015 09:05:19.162 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M 10 Jul 2015 09:05:19.164 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M 10 Jul 2015 09:05:19.167 * Ready to accept connections
+sudo ip link set dev tap0 down 2> /dev/null
+sudo ip link del dev tap0 2> /dev/null
+sudo ip link set dev virbr0 down 2> /dev/null
+sudo ip link del dev virbr0 2> /dev/null
+sudo ip link add dev virbr0 type bridge
+sudo ip address add 172.44.0.1/24 dev virbr0
+sudo ip link set dev virbr0 up
+sudo qemu-system-x86_64 \
+    -kernel "$kernel" \
+    -nographic \
+    -m 256M \
+    -netdev bridge,id=en0,br=virbr0 -device virtio-net-pci,netdev=en0 \
+    -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- $cmd" \
+    -fsdev local,id=myid,path="$rootfs",security_model=none \
+    -device virtio-9p-pci,fsdev=myid,mount_tag=fs1,disable-modern=on,disable-legacy=off \
+    -cpu max
 ```
 
 The server listens for connections on the `172.44.0.2` address advertised.
-A Redis client (such as
-[`redis-cli`](https://github.com/unikraft/summer-of-code-2021/blob/main/content/en/docs/sessions/04-complex-applications/sol/03-set-up-and-run-redis/redis-cli))
-is required to query the server.
-
-To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
-
-```console
-redis-cli -h 172.44.0.2
-```
-
-You can test it using `set/get` commands:
-
-```text
-172.44.0.2:6379> set a 1
-OK
-172.44.0.2:6379> get a
-"1"
-172.44.0.2:6379>
-```
+To test / use the server, follow the instructions in the ["Use" section](#use).
 
 To close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut;
 that is press the `Ctrl` and `a` keys at the same time and then, separately, press the `x` key.
 
 #### QEMU AArch64
 
-To run the AArch64 build, use the `./run/qemu-aarch64-9pfs.sh` script:
+To run the QEMU x86_64 build, use commands below to create a network setup and then start a Redis Unikraft instance:
 
 ```console
-./run/qemu-aarch64-9pfs.sh
+sudo ip link set dev tap0 down 2> /dev/null
+sudo ip link del dev tap0 2> /dev/null
+sudo ip link set dev virbr0 down 2> /dev/null
+sudo ip link del dev virbr0 2> /dev/null
+sudo ip link add dev virbr0 type bridge
+sudo ip address add 172.44.0.1/24 dev virbr0
+sudo ip link set dev virbr0 up
+sudo qemu-system-aarch64 \
+    -machine virt \
+    -kernel "$kernel" \
+    -nographic \
+    -m 256M \
+    -netdev bridge,id=en0,br=virbr0 -device virtio-net-pci,netdev=en0 \
+    -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- $cmd" \
+    -fsdev local,id=myid,path="$rootfs",security_model=none \
+    -device virtio-9p-pci,fsdev=myid,mount_tag=fs1,disable-modern=on,disable-legacy=off \
+    -cpu max
 ```
 
-You should now see the Redis server banner, just like when running for x86_64.
+The server listens for connections on the `172.44.0.2` address advertised.
+To test / use the server, follow the instructions in the ["Use" section](#use).
 
-```text
-1: Set IPv4 address 172.44.0.2 mask 255.255.255.0 gw 172.44.0.1
-en1: Added
-en1: Interface is up
-Powered by
-o.   .o       _ _               __ _
-Oo   Oo  ___ (_) | __ __  __ _ ' _) :_
-oO   oO ' _ `| | |/ /  _)' _` | |_|  _)
-oOo oOO| | | | |   (| | | (_) |  _) :_
- OoOoO ._, ._:_:_,\_._,  .__,_:_, \___)
-                  Atlas 0.13.1~5eb820bd
-1:C -748820 Jan 1970 -23:-20:00.178 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-1:C -748820 Jan 1970 -23:-20:00.182 # Redis version=7.0.11, bits=64, commit=c5ee3442, modified=1, pid=1, just started
-1:C -748820 Jan 1970 -23:-20:00.183 # Configuration loaded
-[    0.372571] ERR:  [libposix_process] <deprecated.c @  348> Ignore updating resource 7: cur = 10032, max = 10032
-1:M -748820 Jan 1970 -23:-20:00.374 * Increased maximum number of open files to 10032 (it was originally set to 1024).
-1:M -748820 Jan 1970 -23:-20:00.375 * monotonic clock: POSIX clock_gettime
-                _._
-           _.-``__ ''-._
-      _.-``    `.  `_.  ''-._           Redis 7.0.11 (c5ee3442/1) 64 bit
-  .-`` .-```.  ```\/    _.,_ ''-._
- (    '      ,       .-`  | `,    )     Running in standalone mode
- |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
- |    `-._   `._    /     _.-'    |     PID: 1
-  `-._    `-._  `-./  _.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |           https://redis.io
-  `-._    `-._`-.__.-'_.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |
-  `-._    `-._`-.__.-'_.-'    _.-'
-      `-._    `-.__.-'    _.-'
-          `-._        _.-'
-              `-.__.-'
-
-1:M -748820 Jan 1970 -23:-20:00.499 # WARNING: The TCP backlog setting of 511 cannot be enforced because SOMAXCONN is set to the lower value of 128.
-1:M -748820 Jan 1970 -23:-20:00.499 # Server initialized
-1:M -748820 Jan 1970 -23:-20:00.550 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M -748820 Jan 1970 -23:-20:00.551 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M -748820 Jan 1970 -23:-20:00.551 # Warning: can't mask SIGALRM in bio.c thread: No error information
-1:M -748820 Jan 1970 -23:-20:00.556 * Ready to accept connections
-```
-
-To test if the Unikraft instance of the Redis server works, open another console and use the `redis-cli` command below to query the server:
-
-```console
-redis-cli -h 172.44.0.2
-```
-
-You can test it using `set/get` commands:
-
-```text
-172.44.0.2:6379> set a 1
-OK
-172.44.0.2:6379> get a
-"1"
-172.44.0.2:6379>
-```
-
-Similar to the `x86_64` application, to close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut.
+To close the QEMU Redis server, use the `Ctrl+a x` keyboard shortcut;
+that is press the `Ctrl` and `a` keys at the same time and then, separately, press the `x` key.
 
 ### Building and Running with initrd
 
@@ -549,20 +551,57 @@ make prepare
 make -j $(nproc)
 ```
 
-To run the QEMU x86_64 initrd build, use `./run/qemu-x86_64-initrd.sh`:
+To run the QEMU x86_64 initrd build, use the commands below:
 
 ```console
-./run/qemu-x86_64-initrd.sh
+old="$PWD"
+cd "$rootfs"
+find -depth -print | tac | bsdcpio -o --format newc > "$old"/rootfs.cpio
+cd "$old"
+sudo ip link set dev tap0 down 2> /dev/null
+sudo ip link del dev tap0 2> /dev/null
+sudo ip link set dev virbr0 down 2> /dev/null
+sudo ip link del dev virbr0 2> /dev/null
+sudo ip link add dev virbr0 type bridge
+sudo ip address add 172.44.0.1/24 dev virbr0
+sudo ip link set dev virbr0 up
+sudo qemu-system-x86_64 \
+    -kernel "$kernel" \
+    -nographic \
+    -m 256M \
+    -netdev bridge,id=en0,br=virbr0 -device virtio-net-pci,netdev=en0 \
+    -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- $cmd" \
+    -initrd "$PWD"/rootfs.cpio \
+    -cpu max
 ```
 
 The commands for AArch64 are similar:
 
 ```console
 make distclean
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-aarch64-initrd make defconfig
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-arm64-initrd make defconfig
 make prepare
 make -j $(nproc)
-./run/qemu-aarch64-initrd.sh
+old="$PWD"
+cd "$rootfs"
+find -depth -print | tac | bsdcpio -o --format newc > "$old"/rootfs.cpio
+cd "$old"
+sudo ip link set dev tap0 down 2> /dev/null
+sudo ip link del dev tap0 2> /dev/null
+sudo ip link set dev virbr0 down 2> /dev/null
+sudo ip link del dev virbr0 2> /dev/null
+sudo ip link add dev virbr0 type bridge
+sudo ip address add 172.44.0.1/24 dev virbr0
+sudo ip link set dev virbr0 up
+sudo qemu-system-aarch64 \
+    -machine virt \
+    -kernel "$kernel" \
+    -nographic \
+    -m 256M \
+    -netdev bridge,id=en0,br=virbr0 -device virtio-net-pci,netdev=en0 \
+    -append "netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- $cmd" \
+    -initrd "$PWD"/rootfs.cpio \
+    -cpu max
 ```
 
 ### Building and Running with Firecracker
@@ -582,30 +621,73 @@ To use Firecraker, you need to download a [Firecracker release](https://github.c
 You can use the commands below to make the `firecracker-x86_64` executable from release v1.4.0 available globally in the command line:
 
 ```console
-cd /tmp 
+cd /tmp
 wget https://github.com/firecracker-microvm/firecracker/releases/download/v1.4.0/firecracker-v1.4.0-x86_64.tgz
-tar xzf firecracker-v1.4.0-x86_64.tgz 
+tar xzf firecracker-v1.4.0-x86_64.tgz
 sudo cp release-v1.4.0-x86_64/firecracker-v1.4.0-x86_64 /usr/local/bin/firecracker-x86_64
 ```
 
 To run a unikernel image, you need to configure a JSON file.
-This is the `run/fc-x86_64-initrd.json` file.
-This configuration file is used as part of the run script `./run/fc-x86_64-initrd.sh`:
+The generated JSON file for Firecraker on x86_64 is located in `scripts/run/fc-x86_64-initrd.json`:
+
+```json
+{
+  "boot-source": {
+    "kernel_image_path": "workdir/build/redis_fc-x86_64",
+    "boot_args": "redis_fc-x86_64 netdev.ipv4_addr=172.44.0.2 netdev.ipv4_gw_addr=172.44.0.1 netdev.ipv4_subnet_mask=255.255.255.0 -- /redis.conf",
+    "initrd_path": "rootfs.cpio"
+  },
+  "drives": [],
+  "machine-config": {
+    "vcpu_count": 1,
+    "mem_size_mib": 256,
+    "smt": false,
+    "track_dirty_pages": false
+  },
+  "cpu-config": null,
+  "balloon": null,
+  "network-interfaces": [
+    {
+      "iface_id": "net1",
+      "guest_mac":  "06:00:ac:10:00:02",
+      "host_dev_name": "tap0"
+    }
+  ],
+  "vsock": null,
+  "logger": {
+    "log_path": "/tmp/firecracker.log",
+    "level": "Debug",
+    "show_level": true,
+    "show_log_origin": true
+  },
+  "metrics": null,
+  "mmds-config": null,
+  "entropy": null
+}
+```
+
+To run the Firecracker x86_64 build, use the commands below:
 
 ```console
-./run/fc-x86_64-initrd.sh
+old="$PWD"
+cd "$rootfs"
+find -depth -print | tac | bsdcpio -o --format newc > "$old"/rootfs.cpio
+cd "$old"
+sudo ip link set dev tap0 down 2> /dev/null
+sudo ip link del dev tap0 2> /dev/null
+sudo ip link set dev virbr0 down 2> /dev/null
+sudo ip link del dev virbr0 2> /dev/null
+sudo ip tuntap add dev tap0 mode tap
+sudo ip address add 172.44.0.1/24 dev tap0
+sudo ip link set dev tap0 up
+sudo rm -f /tmp/firecracker.log
+> /tmp/firecracker.log
+sudo rm -f /tmp/firecracker.socket
+sudo firecracker-x86_64 \
+        --api-sock /tmp/firecracker.socket \
+        --config-file "$config"
 ```
 
-Same as running with QEMU, the application will start:
-
-```text
-Powered by
-o.   .o       _ _               __ _
-Oo   Oo  ___ (_) | __ __  __ _ ' _) :_
-oO   oO ' _ `| | |/ /  _)' _` | |_|  _)
-oOo oOO| | | | |   (| | | (_) |  _) :_
- OoOoO ._, ._:_:_,\_._,  .__,_:_, \___)
-                  Atlas 0.13.1~f7511c8b
-```
+Same as running with QEMU, the application will start a server on address 172.44.0.2, on port `6379`.
 
 Note that, currently (release 0.14), there is not yet networking support in Unikraft for Firecracker, so Redis cannot be properly used.
