@@ -65,6 +65,7 @@ For building and running everything for `x86_64`, follow the steps below:
 ```console
 git clone https://github.com/unikraft/app-redis redis
 cd redis/
+./scripts/setup.sh
 wget https://raw.githubusercontent.com/unikraft/app-testing/staging/scripts/generate.py -O scripts/generate.py
 chmod a+x scripts/generate.py
 ./scripts/generate.py
@@ -161,13 +162,10 @@ Follow the steps below for the setup:
      defconfigs/  kraft.cloud.yaml  kraft.yaml  Makefile  Makefile.uk  README.md  rootfs/  scripts/
      ```
 
-  1. While inside the `redis/` directory, clone all required repositories:
+  1. While inside the `redis/` directory, clone all required repositories by using the `setup.sh` script:
 
      ```console
-     git clone https://github.com/unikraft/unikraft workdir/unikraft
-     git clone https://github.com/unikraft/lib-redis workdir/libs/redis
-     git clone https://github.com/unikraft/lib-musl workdir/libs/musl
-     git clone https://github.com/unikraft/lib-lwip workdir/libs/lwip
+     ./scripts/setup.sh
      ```
 
   1. Use the `tree` command to inspect the contents of the `workdir/` directory.
@@ -254,7 +252,8 @@ scripts/
 |   |-- qemu-arm64-initrd.sh*
 |   |-- qemu-x86_64-9pfs.sh*
 |   `-- qemu-x86_64-initrd.sh*
-`-- run.yaml
+|-- run.yaml
+`-- setup.sh*
 ```
 
 They are shell scripts, so you can use an editor or a text viewer to check their contents:
