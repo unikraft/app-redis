@@ -96,7 +96,6 @@ In order to set up, configure, build and run Redis on Unikraft, the following pa
 * `qemu-kvm`
 * `sgabios`
 * `gcc-aarch64-linux-gnu`
-* `redis-tools`
 
 GCC >= 8 is required to build Redis on Unikraft.
 
