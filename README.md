@@ -1,3 +1,6 @@
+**This repository is no longer maintained.
+Please visit the [application catalog](https://github.com/unikraft/catalog/tree/main/library/redis/7.0).**
+
 # Redis on Unikraft
 
 This application starts a Redis web server with Unikraft.
